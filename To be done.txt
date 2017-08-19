@@ -1,0 +1,7 @@
+blobs only in middle
+y axis blobs
+estiamated distance
+detect lightening
+change parameters
+discard blobs not in the middle
+noise removal/kalman filter

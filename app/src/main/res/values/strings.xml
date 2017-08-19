@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">LaserDistancer</string>
+    <string name="start">Start</string>
+    <string name="distance">Distance 0 cm</string>
+    <string name="desc">camera_image</string>
+    <string name="stop">Stop</string>
+    <string name="serialMonitor">Serial Monitor</string>
+    <string name="enter_command">enter command</string>
+    <string name="send">Send</string>
+    <string name="quick_command">Quick Commands</string>
+    <string name="clear">Clear</string>
+    <string name="save">Save</string>
+    <string name="distanceCalculator">Distance Calculator</string>
+    <string name="log">Log</string>
+</resources>
