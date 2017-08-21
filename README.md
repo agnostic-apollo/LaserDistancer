@@ -1,6 +1,9 @@
 # LaserDistancer-and-SerialMonitor
 A project to calculate distance using lasers, camera(android phone), servo motor and arduino. (app includes a serial monitor)
 
+# Description
+(to be updated)
+
 
 [Screenshots](https://github.com/agnostic-apollo/LaserDistancer-and-SerialMonitor/tree/master/screenshots)  
 [Download APK](https://github.com/agnostic-apollo/LaserDistancer-and-SerialMonitor/releases)  
