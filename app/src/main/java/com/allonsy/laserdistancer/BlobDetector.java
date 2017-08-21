@@ -399,7 +399,7 @@ public class BlobDetector {
             } else {
                 rightLaserSecondImageXCoord = secondImageKeyPointsList.get(1).pt.x;
             }
-            pixelChangeAfterTwoDegreeChange = Math.abs(rightLaserSecondImageXCoord-rightLaserSecondImageXCoord);
+            pixelChangeAfterTwoDegreeChange = Math.abs(rightLaserFirstImageXCoord-rightLaserSecondImageXCoord);
             estimatedDistance = estimatedDistanceLinearGraphGradient * pixelChangeAfterTwoDegreeChange;
 
 
@@ -437,19 +437,6 @@ public class BlobDetector {
 
     public double getPixelChangeAfterTwoDegreeChange() {return pixelChangeAfterTwoDegreeChange;}
 
-    /*
-            private void sendUpdateImageIntentToActivity(String filePath)
-            {
-                if(distanceCalculatorServiceHandler!=null) {
-                    Message msg = new Message();
-                    Bundle bundle = new Bundle();
-                    bundle.putString(DistanceCalculatorService.EXTRA_IMAGE_PATH, filePath);
-                    bundle.putString(DistanceCalculatorService.SENDER, DistanceCalculatorService.SENDER_BLOB_DETECTOR);
-                    msg.setData(bundle);
-                    distanceCalculatorServiceHandler.sendMessage(msg);
-                }
-            }
-            */
     public void setHandler( Handler handler) {
         distanceCalculatorServiceHandler = handler;
     }
@@ -459,4 +446,18 @@ public class BlobDetector {
     private void logError(String message) {distanceCalculatorService.logError(message);}
 
     private void logStackTrace(Exception e) {distanceCalculatorService.logStackTrace(e);}
+
+     /*
+    private void sendUpdateImageIntentToActivity(String filePath)
+    {
+        if(distanceCalculatorServiceHandler!=null) {
+            Message msg = new Message();
+            Bundle bundle = new Bundle();
+            bundle.putString(DistanceCalculatorService.EXTRA_IMAGE_PATH, filePath);
+            bundle.putString(DistanceCalculatorService.SENDER, DistanceCalculatorService.SENDER_BLOB_DETECTOR);
+            msg.setData(bundle);
+            distanceCalculatorServiceHandler.sendMessage(msg);
+        }
+    }
+    */
 }
