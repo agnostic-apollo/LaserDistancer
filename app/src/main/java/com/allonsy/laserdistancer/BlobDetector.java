@@ -266,7 +266,7 @@ public class BlobDetector {
         }
 
     }
-
+    // will discard the second lasers blob if lasers are aligned at y-axix as the blobs should be considered as one so that final distance can be calculated now
     private List<KeyPoint> discardBlobsIfAlignedOnTheYaxis(List<KeyPoint> blobKeyPointsList) {
         if(blobKeyPointsList==null || blobKeyPointsList.size()!=2)
             return blobKeyPointsList;
