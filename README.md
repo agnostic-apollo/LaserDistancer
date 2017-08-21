@@ -11,7 +11,7 @@ It uses the [UsbSerial API](https://github.com/felHR85/UsbSerial).
 The communication is done using syncRead and syncWrite API.    
 The commands are processed only after newline character is detected, arguments can also be passed to commands by sperating commands and arguments with a colon ':'    
 
-Writing to arduino :"getAngle" or "setAngle:90" or "turnOnBothLasers"    
+Writing to arduino : "getAngle" or "setAngle:90" or "turnOnBothLasers"    
 Reading from arduino : "angle:90" or "turning on lasers"    
 
 Check out [Arduino Sketch](https://github.com/agnostic-apollo/LaserDistancer-and-SerialMonitor/blob/master/Arduino/Arduino.ino) 
