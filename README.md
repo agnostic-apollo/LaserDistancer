@@ -18,8 +18,8 @@ Check out [Arduino Sketch](https://github.com/agnostic-apollo/LaserDistancer-and
 and [ArduinoCommunicator Android Java Class](https://github.com/agnostic-apollo/LaserDistancer-and-SerialMonitor/blob/master/app/src/main/java/com/allonsy/laserdistancer/ArduinoCommunicator.java)    
   
 [Screenshots](https://github.com/agnostic-apollo/LaserDistancer-and-SerialMonitor/tree/master/screenshots)  
-[Download APK](https://github.com/agnostic-apollo/LaserDistancer-and-SerialMonitor/releases)   
-(apk has large size since openCV is integrated in the app for the main project)   
+[Download APK](https://www.mediafire.com/folder/dak121ip3pnyr/LaserDistancer)   
+(apks have large sizes since openCV is integrated in the app for the main project)   
 (serail monitor can be seperated if requested)   
 
 Credits  
