@@ -9,7 +9,7 @@ The app includes a serial monitor to communicate with the arduino connected to a
 It uses the [UsbSerial API](https://github.com/felHR85/UsbSerial).  
 
 The communication is done using syncRead and syncWrite API.    
-The commands are processed only after newline character is detected.    Also Arguments can be passed to commands by sperating commands and arguments with a colon ':'    
+The commands are processed only after newline character is detected, arguments can also be passed to commands by sperating commands and arguments with a colon ':'    
 
 Writing to arduino :"getAngle" or "setAngle:90" or "turnOnBothLasers"    
 Reading from arduino : "angle:90" or "turning on lasers"    
