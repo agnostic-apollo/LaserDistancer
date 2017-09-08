@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 
 public class ArduinoCommunicator {
 
-    BaseService distanceCalculatorService;
+    BaseService baseService;
     UsbDevice device;
     UsbManager usbManager;
     UsbSerialDevice serialPort;
@@ -25,8 +25,8 @@ public class ArduinoCommunicator {
     private volatile boolean read;
     String readString;
 
-    public ArduinoCommunicator(BaseService distanceCalculatorService) {
-        this.distanceCalculatorService = distanceCalculatorService;
+    public ArduinoCommunicator(BaseService baseService) {
+        this.baseService = baseService;
     }
 
     public boolean start(UsbDevice inputDevice) {
@@ -38,7 +38,7 @@ public class ArduinoCommunicator {
             return false;
 
 
-            usbManager = (UsbManager) distanceCalculatorService.getSystemService(Context.USB_SERVICE);
+            usbManager = (UsbManager) baseService.getSystemService(Context.USB_SERVICE);
             connection = usbManager.openDevice(device);
 
             if (connection == null) {
@@ -95,25 +95,25 @@ public class ArduinoCommunicator {
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_DETACHED)) {
                 logDebug("Device Disconnected");
-                distanceCalculatorService.stopService();
+                baseService.stopService();
             }
         };
     };
 
     public void registerUsbDisconnectnBroadcastReceiver() {
-
+        unregisterUsbDisconnectnBroadcastReceiver();
         IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
         filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-        distanceCalculatorService.registerReceiver(usbDisconnectnBroadcastReceiver, filter);
+        baseService.registerReceiver(usbDisconnectnBroadcastReceiver, filter);
     }
 
     public void unregisterUsbDisconnectnBroadcastReceiver() {
         try {
-            distanceCalculatorService.unregisterReceiver(usbDisconnectnBroadcastReceiver);
+            baseService.unregisterReceiver(usbDisconnectnBroadcastReceiver);
         }
         catch(IllegalArgumentException e) {
-            //distanceCalculatorService.logError(e.getMessage());
+            //baseService.logError(e.getMessage());
         }
     }
 
@@ -142,7 +142,7 @@ public class ArduinoCommunicator {
     private class ReadThread extends Thread {
         @Override
         public void run() {
-            distanceCalculatorService.unCaughtExceptionHandler();
+            baseService.unCaughtExceptionHandler();
             while(read){
                 if(serialPort!=null)
                 {
@@ -197,11 +197,14 @@ public class ArduinoCommunicator {
         }
 
     }
-    private void logDebug(String message) {distanceCalculatorService.logDebug(message);}
+    private void logDebug(String message) {
+        baseService.logDebug(message);}
 
-    private void logError(String message) {distanceCalculatorService.logError(message);}
+    private void logError(String message) {
+        baseService.logError(message);}
 
-    private void logStackTrace(Exception e) {distanceCalculatorService.logStackTrace(e);}
+    private void logStackTrace(Exception e) {
+        baseService.logStackTrace(e);}
 
 
 
@@ -210,7 +213,7 @@ public class ArduinoCommunicator {
         if(laserAngle>=0 && laserAngle<=180) {
             if (!write("setAngle:" + String.valueOf(laserAngle))) {
                 logError("Failed to send command to set laser angle");
-                distanceCalculatorService.stopService();
+                baseService.stopService();
             }
             try {
                 Thread.sleep(500);
@@ -224,7 +227,7 @@ public class ArduinoCommunicator {
     {
         if (!write("getAngle")) {
             logError("Failed to send command to get laser angle");
-            distanceCalculatorService.stopService();
+            baseService.stopService();
         }
     }
 
@@ -232,7 +235,7 @@ public class ArduinoCommunicator {
     {
         if (!write("turnOnBothLasers")) {
             logError("Failed to send command to turn on both lasers");
-            distanceCalculatorService.stopService();
+            baseService.stopService();
         }
     }
 
@@ -240,7 +243,7 @@ public class ArduinoCommunicator {
     {
         if (!write("turnOffBothLasers")) {
             logError("Failed to send command to turn off both lasers");
-            distanceCalculatorService.stopService();
+            baseService.stopService();
         }
     }
 
@@ -248,7 +251,7 @@ public class ArduinoCommunicator {
     {
         if (!write("reset")) {
             logError("Failed to send command to reset arduino");
-            distanceCalculatorService.stopService();
+            baseService.stopService();
         }
     }
 

@@ -79,7 +79,7 @@ public class OpenCVParametersUtil {
             return false;
         }
 
-        //paramsFilePath = "android.resource://" + distanceCalculatorService.getPackageName() + "/xml/params.xml";
+        //paramsFilePath = "android.resource://" + baseService.getPackageName() + "/xml/params.xml";
         paramsFilePath = outDirPath + "param.xml";
         String text =
             "<?xml version=\"1.0\"?>\n" +

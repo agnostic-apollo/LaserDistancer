@@ -198,7 +198,7 @@ public class DistanceCalculatorService extends BaseService {
         intent.setAction(DistanceCalculatorActivity.ACTION_UPDATE_DISTANCE);
         sendBroadcast(intent);
     }
-    private void sendUpdateImageIntentToActivity(String filePath) {
+    public void sendUpdateImageIntentToActivity(String filePath) {
         QueryPreferences.setImagePath(this,filePath);
         Intent intent = new Intent();
         intent.setAction(DistanceCalculatorActivity.ACTION_UPDATE_IMAGE);
@@ -276,7 +276,7 @@ public class DistanceCalculatorService extends BaseService {
                          else {
                             logDebug("Detecting Blobs");
                             List<KeyPoint> blobs;
-                            if(photoCount==2)
+                            if (photoCount == 2)
                                 blobs = blobDetector.storeSecondImageAndDetectBlobs(imageArray);
                             else
                                 blobs = blobDetector.detectBlobs(imageArray);
@@ -288,71 +288,71 @@ public class DistanceCalculatorService extends BaseService {
                                 return;
                             }
                             //if something went wrong in the first 2 picture, try again
-                            if(photoCount==2 && blobs.size() != 1 && blobs.size() != 2)
-                            {
+                            if (photoCount == 2 && blobs.size() != 1 && blobs.size() != 2) {
                                 restartMeasurement();
                             }
-
-                            for (int i = 0; i != blobs.size(); i++) {
-                                logDebug("Blob " + String.valueOf(i) + " at " + String.valueOf(blobs.get(i).pt.x) + ", " + String.valueOf(blobs.get(i).pt.y));
-                            }
-                            logDebug(String.valueOf(blobs.size()) + " blobs detected");
-
-                            String filePath = blobDetector.getBlobImageFilePath();
-                            if (!filePath.equals(""))
-                                sendUpdateImageIntentToActivity(filePath);
-
-                            if (blobs.size() == 0) {//failed to detect any blobs
-                                size1Tries = 0;
-                                size2PlusTries = 0;
-                                if (size0Tries < 1) { //try once again to detect blobs
-                                    size0Tries++;
-                                } else {
-                                    sendUpdateDistanceIntentToActivity(-1);
-                                    logError("Failed to find any blobs in image even after 1 retry");
-                                    stopService();
+                            else {
+                                for (int i = 0; i != blobs.size(); i++) {
+                                    logDebug("Blob " + String.valueOf(i) + " at " + String.valueOf(blobs.get(i).pt.x) + ", " + String.valueOf(blobs.get(i).pt.y));
                                 }
-                            } else if (blobs.size() == 1) { //if only 1 blob detected lasers are aligned, so calculate distance
-                                size0Tries = 0;
-                                size2PlusTries = 0;
-                                if (size1Tries < 1) { //try once again to be sure
-                                    size1Tries++;
-                                } else {
-                                    logDebug("Angle = " + String.valueOf(laserAngle));
-                                    sendUpdateDistanceIntentToActivity(mLaserUtil.calculateDistance());
-                                    logDebug("Distance = " + String.valueOf(mLaserUtil.calculateDistance()) + " pixelChangeAfterTwoDegreeChange =  " + String.valueOf(blobDetector.getPixelChangeAfterTwoDegreeChange()));
-                                    try {
-                                        Thread.sleep(1000);
-                                    } catch (Exception e) {
-                                        Logger.logStackTrace(e);
+                                logDebug(String.valueOf(blobs.size()) + " blobs detected");
+
+                                //String filePath = blobDetector.getBlobImageFilePath();
+                                //if (!filePath.equals(""))
+                                    //sendUpdateImageIntentToActivity(filePath);
+
+                                if (blobs.size() == 0) {//failed to detect any blobs
+                                    size1Tries = 0;
+                                    size2PlusTries = 0;
+                                    if (size0Tries < 1) { //try once again to detect blobs
+                                        size0Tries++;
+                                    } else {
+                                        sendUpdateDistanceIntentToActivity(-1);
+                                        logError("Failed to find any blobs in image even after 1 retry");
+                                        stopService();
                                     }
-                                    stopService();
-                                }
-                            } else if (blobs.size() == 2) { //if 2 blobs detected lasers are not aligned yet
-                                //sendUpdateDistanceIntentToActivity(0);
-                                size0Tries = 0;
-                                size1Tries = 0;
-                                size2PlusTries = 0;
+                                } else if (blobs.size() == 1) { //if only 1 blob detected lasers are aligned, so calculate distance
+                                    size0Tries = 0;
+                                    size2PlusTries = 0;
+                                    if (size1Tries < 1) { //try once again to be sure
+                                        size1Tries++;
+                                    } else {
+                                        logDebug("Angle = " + String.valueOf(laserAngle));
+                                        sendUpdateDistanceIntentToActivity(mLaserUtil.calculateDistance());
+                                        logDebug("Distance = " + String.valueOf(mLaserUtil.calculateDistance()) + " pixelChangeAfterTwoDegreeChange =  " + String.valueOf(blobDetector.getPixelChangeAfterTwoDegreeChange()));
+                                        try {
+                                            Thread.sleep(1000);
+                                        } catch (Exception e) {
+                                            Logger.logStackTrace(e);
+                                        }
+                                        stopService();
+                                    }
+                                } else if (blobs.size() == 2) { //if 2 blobs detected lasers are not aligned yet
+                                    //sendUpdateDistanceIntentToActivity(0);
+                                    size0Tries = 0;
+                                    size1Tries = 0;
+                                    size2PlusTries = 0;
 
-                                laserAngle = mLaserUtil.calculateNewAngle(blobs);
-                                //move laser...
-                                mArduinoCommunicator.setLaserAngle(laserAngle);
-                                //mArduinoCommunicator.write("getAngle");
-                            } else { //if more than 2 blobs
-                                size0Tries = 0;
-                                size1Tries = 0;
-                                if (size2PlusTries < 2) { //try once again to be sure
-                                    size2PlusTries++;
-                                } else {
-                                    sendUpdateDistanceIntentToActivity(-1);
-                                    logError("Finding more than 2 blobs even after 2 retries");
-                                    stopService();
+                                    laserAngle = mLaserUtil.calculateNewAngle(blobs);
+                                    //move laser...
+                                    mArduinoCommunicator.setLaserAngle(laserAngle);
+                                    //mArduinoCommunicator.write("getAngle");
+                                } else { //if more than 2 blobs
+                                    size0Tries = 0;
+                                    size1Tries = 0;
+                                    if (size2PlusTries < 2) { //try once again to be sure
+                                        size2PlusTries++;
+                                    } else {
+                                        sendUpdateDistanceIntentToActivity(-1);
+                                        logError("Finding more than 2 blobs even after 2 retries");
+                                        stopService();
+                                    }
                                 }
                             }
                         }
                         //take next photo
                         if (photoCount < MAX_PHOTO_COUNT){
-                            if (!photoTaker.takePhoto())
+                            if (photoTaker!=null && !photoTaker.takePhoto())
                                 stopService();
                         }
                         else{

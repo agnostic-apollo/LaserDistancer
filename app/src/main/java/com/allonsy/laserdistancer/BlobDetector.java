@@ -91,7 +91,8 @@ public class BlobDetector {
 
 
             findEstimatedDistance(); //calculate estimated distance here
-            createBlobImageFile(secondImageMatrix, secondImageBlobKeyPoints);
+            updateBlobImage(secondImageMatrix, secondImageBlobKeyPoints);
+
             setLeftLaserCoords(firstImageBlobKeyPoints.toList());
 
             return discardBlobsIfAlignedOnTheYaxis(secondImageBlobKeyPoints.toList());
@@ -119,7 +120,7 @@ public class BlobDetector {
             blobDetector.detect(imageMatrix, blobKeyPoints);
             //logDebug("blob detected");
 
-            createBlobImageFile(imageMatrix, blobKeyPoints);
+            updateBlobImage(imageMatrix, blobKeyPoints);
 
 
             return discardBlobsIfAlignedOnTheYaxis(blobKeyPoints.toList());
@@ -137,7 +138,7 @@ public class BlobDetector {
         blobDetector.detect(firstImageMatrix, firstImageBlobKeyPoints);
 
         secondImageBlobKeyPoints = new MatOfKeyPoint();
-        blobDetector.detect(firstImageMatrix, secondImageBlobKeyPoints);
+        blobDetector.detect(secondImageMatrix, secondImageBlobKeyPoints);
 
         if(firstImageBlobKeyPoints.toList().size()!=2 && secondImageBlobKeyPoints.toList().size()!=2) {
             //decrease min circularity from default(0.85) to 0.60 until center blobs are seen
@@ -152,7 +153,9 @@ public class BlobDetector {
                 blobDetector.detect(firstImageMatrix, firstImageBlobKeyPoints);
 
                 secondImageBlobKeyPoints = new MatOfKeyPoint();
-                blobDetector.detect(firstImageMatrix, secondImageBlobKeyPoints);
+                blobDetector.detect(secondImageMatrix, secondImageBlobKeyPoints);
+
+                updateBlobImage(secondImageMatrix, secondImageBlobKeyPoints);
 
                 logDebug(String.valueOf(firstImageBlobKeyPoints.toList().size()) + "," + String.valueOf(secondImageBlobKeyPoints.toList().size()) + " blobs detected at circularity " + String.valueOf(openCVParametersUtil.getMinCircularity()));
 
@@ -188,14 +191,16 @@ public class BlobDetector {
             blobDetector.detect(firstImageMatrix, firstImageBlobKeyPoints);
 
             secondImageBlobKeyPoints = new MatOfKeyPoint();
-            blobDetector.detect(firstImageMatrix, secondImageBlobKeyPoints);
+            blobDetector.detect(secondImageMatrix, secondImageBlobKeyPoints);
+
+            updateBlobImage(secondImageMatrix, secondImageBlobKeyPoints);
 
             logDebug(String.valueOf(firstImageBlobKeyPoints.toList().size()) + "," + String.valueOf(secondImageBlobKeyPoints.toList().size()) + " blobs detected at min,max area " +
                     String.valueOf(openCVParametersUtil.getMinArea())  + "," + String.valueOf(openCVParametersUtil.getMaxArea()));
 
-            if(firstImageBlobKeyPoints.toList().size()<2 && secondImageBlobKeyPoints.toList().size()<2 && centerBlobsDetectedLast) { //if blobs disappear
-                openCVParametersUtil.setMinArea(openCVParametersUtil.getMinArea()-10);
-                openCVParametersUtil.setMaxArea(openCVParametersUtil.getMaxArea()+20);
+            if((firstImageBlobKeyPoints.toList().size()<2 || secondImageBlobKeyPoints.toList().size()<2) && centerBlobsDetectedLast) { //if blobs disappear
+                openCVParametersUtil.setMinArea(openCVParametersUtil.getMinArea()-20);
+                openCVParametersUtil.setMaxArea(openCVParametersUtil.getMaxArea()+40);
                 if(!setOpenCVParameters()){
                     logError("Error setting OpenCV Parameters");
                     return false;
@@ -204,7 +209,7 @@ public class BlobDetector {
                 blobDetector.detect(firstImageMatrix, firstImageBlobKeyPoints);
 
                 secondImageBlobKeyPoints = new MatOfKeyPoint();
-                blobDetector.detect(firstImageMatrix, secondImageBlobKeyPoints);
+                blobDetector.detect(secondImageMatrix, secondImageBlobKeyPoints);
 
                 logDebug("final min,max area set at " + String.valueOf(openCVParametersUtil.getMinArea())  + "," + String.valueOf(openCVParametersUtil.getMaxArea()));
                 break;
@@ -328,31 +333,32 @@ public class BlobDetector {
 
     }
 
-    private void createBlobImageFile(Mat imageMatrix, MatOfKeyPoint blobKeyPoints)
-    {
-        int minFreeSpace= 200;//dont record if space in external storage is less than 200mb
+    private void createBlobImageFile(Mat imageMatrix, MatOfKeyPoint blobKeyPoints) {
+        int minFreeSpace = 200;//dont record if space in external storage is less than 200mb
 
         //Set output file
-        if(blobImageFolderPath==null){
+        if (blobImageFolderPath == null) {
             logError("Output Directory to store Blob Image does not exists");
             return;
         }
 
-        long freespace= new File(blobImageFolderPath).getFreeSpace() / 1024;
-        if(freespace<minFreeSpace)
-        {
-            logError("Space less than "+ String.valueOf(freespace) + "mb on device, free space = " + String.valueOf(freespace) +"mb");
+        long freespace = new File(blobImageFolderPath).getFreeSpace() / 1024;
+        if (freespace < minFreeSpace) {
+            logError("Space less than " + String.valueOf(freespace) + "mb on device, free space = " + String.valueOf(freespace) + "mb");
             return;
         }
 
         blobImageFilePath = blobImageFolderPath + File.separator + ("IMG_COPENCV_" + new Date(System.currentTimeMillis())).replaceAll(" ", "_").replaceAll(":", "_") + ".jpeg";
 
 
-        Mat blobMatrix= new Mat();
-        org.opencv.core.Scalar cores = new org.opencv.core.Scalar(0,0,255);
-        org.opencv.features2d.Features2d.drawKeypoints(imageMatrix, blobKeyPoints, blobMatrix, cores, org.opencv.features2d.Features2d.DRAW_RICH_KEYPOINTS );
+        Mat blobMatrix = new Mat();
+        org.opencv.core.Scalar cores = new org.opencv.core.Scalar(0, 0, 255);
+        org.opencv.features2d.Features2d.drawKeypoints(imageMatrix, blobKeyPoints, blobMatrix, cores, org.opencv.features2d.Features2d.DRAW_RICH_KEYPOINTS);
 
-        Imgcodecs.imwrite(blobImageFilePath, blobMatrix);
+        if (!Imgcodecs.imwrite(blobImageFilePath, blobMatrix)) {
+            logError("Error creating blob image file");
+            blobImageFilePath = "";
+        }
 
     }
 
@@ -425,6 +431,13 @@ public class BlobDetector {
             return 0;
         else
             return 1;
+    }
+
+    private void updateBlobImage(Mat imageMatrix, MatOfKeyPoint blobKeyPoints)
+    {
+        createBlobImageFile(imageMatrix, blobKeyPoints);
+        if (!blobImageFilePath.equals(""))
+            distanceCalculatorService.sendUpdateImageIntentToActivity(blobImageFilePath);
     }
 
     public void setBlobImageFolderPath(String blobImageFolderPath) {this.blobImageFolderPath = blobImageFolderPath;}
