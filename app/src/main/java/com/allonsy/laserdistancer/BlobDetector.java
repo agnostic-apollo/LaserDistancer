@@ -283,10 +283,10 @@ public class BlobDetector {
             double keypointsXCoordDifference = Math.abs(keyPoint1.pt.x - keyPoint2.pt.x);
             double keypointsYCoordDifference = Math.abs(keyPoint1.pt.y - keyPoint2.pt.y);
 
-            //difference in x axis equal to diameter of blob
+            //difference in x axis equal to half the diameter of blob
             //difference in y axis is 10 times the diameter of blob
             //should reevaluate these after testing
-            if(keypointsXCoordDifference<=keyPoint1.size && keypointsYCoordDifference<=keyPoint1.size*10) {
+            if(keypointsXCoordDifference<=keyPoint1.size*0.5 && keypointsYCoordDifference<=keyPoint1.size*10) {
                 logDebug("Removing blob2 since lasers are alighned at y axis");
                 blobKeyPointsList.remove(1);
             }

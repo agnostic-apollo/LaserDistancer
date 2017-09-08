@@ -287,15 +287,18 @@ public class DistanceCalculatorService extends BaseService {
                                 stopService();
                                 return;
                             }
+
+                            for (int i = 0; i != blobs.size(); i++) {
+                                logDebug("Blob " + String.valueOf(i) + " at " + String.valueOf(blobs.get(i).pt.x) + ", " + String.valueOf(blobs.get(i).pt.y));
+                            }
+                            logDebug(String.valueOf(blobs.size()) + " blobs detected");
+
                             //if something went wrong in the first 2 picture, try again
                             if (photoCount == 2 && blobs.size() != 1 && blobs.size() != 2) {
+                                logDebug("Restarting measurement since blobs size not equal to 1 or 2");
                                 restartMeasurement();
                             }
                             else {
-                                for (int i = 0; i != blobs.size(); i++) {
-                                    logDebug("Blob " + String.valueOf(i) + " at " + String.valueOf(blobs.get(i).pt.x) + ", " + String.valueOf(blobs.get(i).pt.y));
-                                }
-                                logDebug(String.valueOf(blobs.size()) + " blobs detected");
 
                                 //String filePath = blobDetector.getBlobImageFilePath();
                                 //if (!filePath.equals(""))
