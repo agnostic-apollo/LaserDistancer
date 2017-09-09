@@ -26,12 +26,12 @@ public class DistanceCalculatorService extends BaseService {
     private int size0Tries;
     private int size1Tries;
     private int size2PlusTries;
-    private PhotoTaker photoTaker;
-    private BlobDetector blobDetector;
-    private ArduinoCommunicator mArduinoCommunicator;
-    private LaserUtil mLaserUtil;
-    private Thread distanceCalculatingThread;
-    private Handler distanceCalculatingThreadHandler;
+    private volatile PhotoTaker photoTaker;
+    private volatile BlobDetector blobDetector;
+    private volatile ArduinoCommunicator mArduinoCommunicator;
+    private volatile LaserUtil mLaserUtil;
+    private volatile Thread distanceCalculatingThread;
+    private volatile Handler distanceCalculatingThreadHandler;
 
     public static final String ACTION_SERVICE_START = "startService";
     public static final String ACTION_SERVICE_STOP = "stopService";
@@ -274,7 +274,7 @@ public class DistanceCalculatorService extends BaseService {
                            mArduinoCommunicator.setLaserAngle(laserAngle);
                          }
                          else {
-                            logDebug("Detecting Blobs");
+                            logDebug("Detecting Blobs of photoCount = " + String.valueOf(photoCount));
                             List<KeyPoint> blobs;
                             if (photoCount == 2)
                                 blobs = blobDetector.storeSecondImageAndDetectBlobs(imageArray);
@@ -396,6 +396,11 @@ public class DistanceCalculatorService extends BaseService {
             public void uncaughtException(final Thread thread, final Throwable ex) {
                 ex.printStackTrace();
                 logError("Uncaught Exception caught: " + ex.getMessage());
+                //release camera just in case stopService fails to
+                if(photoTaker!=null) {
+                    photoTaker.stop();
+                    photoTaker=null;
+                }
                 stopService();
             }
         });

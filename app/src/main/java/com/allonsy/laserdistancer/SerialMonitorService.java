@@ -14,7 +14,7 @@ public class SerialMonitorService extends BaseService {
 
     Context context;
     UsbDevice device;
-    private ArduinoCommunicator mArduinoCommunicator;
+    private volatile ArduinoCommunicator mArduinoCommunicator;
     private volatile boolean serialMonitor = false;
     private volatile boolean alreadyStopping = false;
     public static final String ACTION_SERVICE_START = "startSerialMonitorService";

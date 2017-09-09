@@ -25,7 +25,7 @@ public class OpenCVParametersUtil {
     private static int blobColorDefault = 0;
     private static int filterByAreaDefault = 1;
     private static float minAreaDefault = 50.0f;
-    private static float maxAreaDefault = 400.0f;
+    private static float maxAreaDefault = 600.0f;
     private static int filterByCircularityDefault = 1;
     private static float minCircularityDefault = 0.85f;
     private static float maxCircularityDefault = 1.0f;

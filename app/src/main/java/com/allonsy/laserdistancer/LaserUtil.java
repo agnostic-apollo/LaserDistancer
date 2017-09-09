@@ -80,6 +80,7 @@ public class LaserUtil {
             {
                 laserAngle=laserAngle+laserAngleOffset+2;
                 if(laserAngle>90) {
+                    logDebug("Restarting measurement since laserAngle>90");
                     distanceCalculatorService.restartMeasurement();
                     laserAngle = resetAndGetInitialAngle();
                 }
@@ -90,6 +91,7 @@ public class LaserUtil {
             else{
                 laserAngle=laserAngle+laserAngleOffset-2;
                 if(laserAngle<1){
+                    logDebug("Restarting measurement since laserAngle<1");
                     distanceCalculatorService.restartMeasurement();
                     laserAngle = resetAndGetInitialAngle();
                 }

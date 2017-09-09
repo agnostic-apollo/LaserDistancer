@@ -69,6 +69,7 @@ public class BlobDetector {
 
     public void storeFirstImage(byte[] image) {
 
+        logDebug("inside storeFirstImage");
         firstImageMatrix = Imgcodecs.imdecode(new MatOfByte(image), Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
         firstImageWidth = firstImageMatrix.cols();
         firstImageHeight = firstImageMatrix.rows();
@@ -169,19 +170,22 @@ public class BlobDetector {
             }
         }
 
-
-        //decrease area range from default(50-400) until center blobs are seen
+        int minAreaChangeStep = 10;
+        int maxAreaChangeStep = 20;
+        int stepCount = (int) Math.abs(openCVParametersUtil.getMaxArea()-openCVParametersUtil.getMinArea()) /  Math.abs(minAreaChangeStep+maxAreaChangeStep);
+        //decrease area range from default(50-600) until center blobs are seen
         boolean centerBlobsDetectedLast=false;
-        for (int i=0;i<10;i++) {
+        boolean centerBlobsDetectedNow=false;
+        for (int i=0;i<stepCount;i++) {
             if(checkIfBothLaserBlobsAreDetected(firstImageBlobKeyPoints.toList()) &&  checkIfBothLaserBlobsAreDetected(secondImageBlobKeyPoints.toList()))
             {
-                centerBlobsDetectedLast=true;
+                centerBlobsDetectedNow=true;
             }
             else
-                centerBlobsDetectedLast=false;
+                centerBlobsDetectedNow=false;
 
-            openCVParametersUtil.setMinArea(openCVParametersUtil.getMinArea()+10);
-            openCVParametersUtil.setMaxArea(openCVParametersUtil.getMaxArea()-20);
+            openCVParametersUtil.setMinArea(openCVParametersUtil.getMinArea()+minAreaChangeStep);
+            openCVParametersUtil.setMaxArea(openCVParametersUtil.getMaxArea()-maxAreaChangeStep);
             if(!setOpenCVParameters()){
                 logError("Error setting OpenCV Parameters");
                 return false;
@@ -198,9 +202,9 @@ public class BlobDetector {
             logDebug(String.valueOf(firstImageBlobKeyPoints.toList().size()) + "," + String.valueOf(secondImageBlobKeyPoints.toList().size()) + " blobs detected at min,max area " +
                     String.valueOf(openCVParametersUtil.getMinArea())  + "," + String.valueOf(openCVParametersUtil.getMaxArea()));
 
-            if((firstImageBlobKeyPoints.toList().size()<2 || secondImageBlobKeyPoints.toList().size()<2) && centerBlobsDetectedLast) { //if blobs disappear
-                openCVParametersUtil.setMinArea(openCVParametersUtil.getMinArea()-20);
-                openCVParametersUtil.setMaxArea(openCVParametersUtil.getMaxArea()+40);
+            if((firstImageBlobKeyPoints.toList().size()<2 || secondImageBlobKeyPoints.toList().size()<2 && centerBlobsDetectedLast) || (centerBlobsDetectedLast && !centerBlobsDetectedNow)) { //if blobs disappear
+                openCVParametersUtil.setMinArea(openCVParametersUtil.getMinArea()-(minAreaChangeStep*3));
+                openCVParametersUtil.setMaxArea(openCVParametersUtil.getMaxArea()+(maxAreaChangeStep*3));
                 if(!setOpenCVParameters()){
                     logError("Error setting OpenCV Parameters");
                     return false;
@@ -214,6 +218,7 @@ public class BlobDetector {
                 logDebug("final min,max area set at " + String.valueOf(openCVParametersUtil.getMinArea())  + "," + String.valueOf(openCVParametersUtil.getMaxArea()));
                 break;
             }
+            centerBlobsDetectedLast=centerBlobsDetectedNow;
         }
 
 
@@ -286,7 +291,7 @@ public class BlobDetector {
             //difference in x axis equal to half the diameter of blob
             //difference in y axis is 10 times the diameter of blob
             //should reevaluate these after testing
-            if(keypointsXCoordDifference<=keyPoint1.size*0.5 && keypointsYCoordDifference<=keyPoint1.size*10) {
+            if(keypointsXCoordDifference<=keyPoint1.size*0.3 && keypointsYCoordDifference<=keyPoint1.size*10) {
                 logDebug("Removing blob2 since lasers are alighned at y axis");
                 blobKeyPointsList.remove(1);
             }
@@ -427,7 +432,8 @@ public class BlobDetector {
         double keypoint2sXCoordDifference = leftLaserCoords.x - keyPoint2.pt.x;
         double keypoint2sYCoordDifference = leftLaserCoords.y - keyPoint2.pt.y;
 
-        if(keypoint1sXCoordDifference<keypoint2sXCoordDifference && keypoint1sYCoordDifference<keypoint2sYCoordDifference)
+        //if(keypoint1sXCoordDifference<keypoint2sXCoordDifference && keypoint1sYCoordDifference<keypoint2sYCoordDifference)
+        if(keypoint1sXCoordDifference < keypoint2sXCoordDifference)
             return 0;
         else
             return 1;
