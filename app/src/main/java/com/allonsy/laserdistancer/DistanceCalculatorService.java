@@ -289,7 +289,7 @@ public class DistanceCalculatorService extends BaseService {
                             }
 
                             for (int i = 0; i != blobs.size(); i++) {
-                                logDebug("Blob " + String.valueOf(i) + " at " + String.valueOf(blobs.get(i).pt.x) + ", " + String.valueOf(blobs.get(i).pt.y));
+                                logDebug("Blob " + String.valueOf(i) + " at " + String.valueOf(blobs.get(i).pt.x) + ", " + String.valueOf(blobs.get(i).pt.y)+ " with diameter " + String.valueOf(blobs.get(i).size) + " and octave " + String.valueOf(blobs.get(i).octave));
                             }
                             logDebug(String.valueOf(blobs.size()) + " blobs detected");
 
@@ -308,6 +308,7 @@ public class DistanceCalculatorService extends BaseService {
                                     size1Tries = 0;
                                     size2PlusTries = 0;
                                     if (size0Tries < 1) { //try once again to detect blobs
+                                        logDebug("trying again to make sure");
                                         size0Tries++;
                                     } else {
                                         sendUpdateDistanceIntentToActivity(-1);
@@ -318,6 +319,7 @@ public class DistanceCalculatorService extends BaseService {
                                     size0Tries = 0;
                                     size2PlusTries = 0;
                                     if (size1Tries < 1) { //try once again to be sure
+                                        logDebug("trying again to make sure");
                                         size1Tries++;
                                     } else {
                                         logDebug("Angle = " + String.valueOf(laserAngle));
@@ -338,12 +340,14 @@ public class DistanceCalculatorService extends BaseService {
 
                                     laserAngle = mLaserUtil.calculateNewAngle(blobs);
                                     //move laser...
+                                    logDebug("Angle = " + String.valueOf(laserAngle));
                                     mArduinoCommunicator.setLaserAngle(laserAngle);
                                     //mArduinoCommunicator.write("getAngle");
                                 } else { //if more than 2 blobs
                                     size0Tries = 0;
                                     size1Tries = 0;
                                     if (size2PlusTries < 2) { //try once again to be sure
+                                        logDebug("trying again to make sure");
                                         size2PlusTries++;
                                     } else {
                                         sendUpdateDistanceIntentToActivity(-1);

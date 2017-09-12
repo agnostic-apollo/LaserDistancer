@@ -27,7 +27,7 @@ public class OpenCVParametersUtil {
     private static float minAreaDefault = 50.0f;
     private static float maxAreaDefault = 600.0f;
     private static int filterByCircularityDefault = 1;
-    private static float minCircularityDefault = 0.85f;
+    private static float minCircularityDefault = 0.90f;
     private static float maxCircularityDefault = 1.0f;
     private static int filterByInertiaDefault = 0;
     private static float minInertiaRatioDefault = 0.0f;

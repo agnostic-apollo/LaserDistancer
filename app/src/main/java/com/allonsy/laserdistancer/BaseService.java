@@ -55,6 +55,13 @@ public class BaseService extends Service {
     }
 
     public void unCaughtExceptionHandler() {
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            public void uncaughtException(final Thread thread, final Throwable ex) {
+                ex.printStackTrace();
+                logError("Uncaught Exception caught: " + ex.getMessage());
+                stopService();
+            }
+        });
     }
 
     public void acquireWakelocks() {

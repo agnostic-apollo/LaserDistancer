@@ -12,7 +12,7 @@ public class LaserUtil {
     private DistanceCalculatorService distanceCalculatorService;
     private BlobDetector blobDetector;
     private static float DISTANCE_BETWEEN_LASERS = 0.8267717f; //10.2cm
-    private static int laserAngleOffset = 0;
+    private static int laserAngleOffset = 1;
     private static int laserInitialAngle = 0;
     private static int laserInitialAngleChange = 2;
     private int laserAngle = 0;
@@ -28,13 +28,13 @@ public class LaserUtil {
     public int resetAndGetInitialAngle()
     {
         angleChangeCount = 1;
-        laserAngle = laserInitialAngle;
+        laserAngle = laserInitialAngle+laserAngleOffset;
         return laserAngle;
     }
 
     public float calculateDistance()
     {
-        return (float)(DISTANCE_BETWEEN_LASERS * Math.tan( Math.toRadians(90-(laserAngle+laserAngleOffset)))) ;
+        return (float)(DISTANCE_BETWEEN_LASERS * Math.tan( Math.toRadians(90-(laserAngle)))) ;
     }
 
     public int calculateEstimatedFinalAngle(double estimatedDistance)
@@ -44,7 +44,7 @@ public class LaserUtil {
 
     public int getInitialAngleChange() {
         angleChangeCount++;
-        laserAngle=laserInitialAngle+laserAngleOffset+laserInitialAngleChange;
+        laserAngle=laserAngle+laserInitialAngleChange;
         return laserAngle;
     }
 
@@ -78,7 +78,7 @@ public class LaserUtil {
 
             if(leftLasersXCoord < rightLasersXCoord)
             {
-                laserAngle=laserAngle+laserAngleOffset+2;
+                laserAngle=laserAngle+2;
                 if(laserAngle>90) {
                     logDebug("Restarting measurement since laserAngle>90");
                     distanceCalculatorService.restartMeasurement();
@@ -89,7 +89,7 @@ public class LaserUtil {
             }
 
             else{
-                laserAngle=laserAngle+laserAngleOffset-2;
+                laserAngle=laserAngle-2;
                 if(laserAngle<1){
                     logDebug("Restarting measurement since laserAngle<1");
                     distanceCalculatorService.restartMeasurement();
