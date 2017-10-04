@@ -150,7 +150,7 @@ public class SerialMonitorService extends BaseService {
     public void unCaughtExceptionHandler() {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             public void uncaughtException(final Thread thread, final Throwable ex) {
-                ex.printStackTrace();
+                logStackTrace(new Exception(ex));
                 logError("Uncaught Exception caught: " + ex.getMessage());
                 stopService();
             }

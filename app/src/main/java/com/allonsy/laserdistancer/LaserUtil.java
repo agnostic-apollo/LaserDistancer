@@ -11,8 +11,8 @@ public class LaserUtil {
 
     private DistanceCalculatorService distanceCalculatorService;
     private BlobDetector blobDetector;
-    private static float DISTANCE_BETWEEN_LASERS = 0.8267717f; //10.2cm
-    private static int laserAngleOffset = 1;
+    private static float DISTANCE_BETWEEN_LASERS = 0.8562992f; //26.1cm
+    private static int laserAngleOffset = 0;
     private static int laserInitialAngle = 0;
     private static int laserInitialAngleChange = 2;
     private int laserAngle = 0;
@@ -39,7 +39,7 @@ public class LaserUtil {
 
     public int calculateEstimatedFinalAngle(double estimatedDistance)
     {
-        return (int) Math.toDegrees(Math.atan(estimatedDistance/DISTANCE_BETWEEN_LASERS)) ;
+        return 90-((int) Math.toDegrees(Math.atan(estimatedDistance/DISTANCE_BETWEEN_LASERS))) ;
     }
 
     public int getInitialAngleChange() {

@@ -59,7 +59,7 @@ public class ArduinoCommunicator {
                     readString = "";
                     new ReadThread().start();
                     try {
-                        Thread.sleep(3000);
+                        //Thread.sleep(3000);
                     } catch (Exception e) {
                         Logger.logStackTrace(e);
                     }
@@ -215,11 +215,9 @@ public class ArduinoCommunicator {
                 logError("Failed to send command to set laser angle");
                 baseService.stopService();
             }
-            try {
-                Thread.sleep(500);
-            } catch (Exception e) {
-                Logger.logStackTrace(e);
-            } //wait for laser to move
+            else
+                logDebug("setAngle: = " + String.valueOf(laserAngle));
+            try {Thread.sleep(200);} catch (Exception e) {Logger.logStackTrace(e);} //wait for laser to move
         }
     }
 

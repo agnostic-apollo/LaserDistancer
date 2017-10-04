@@ -162,10 +162,6 @@ public class DistanceCalculatorService extends BaseService {
 
 
     public void stop() {
-        if(photoTaker!=null) {
-            photoTaker.stop();
-            photoTaker=null;
-        }
         if(mArduinoCommunicator!=null) {
             if(!mArduinoCommunicator.isSerialPortNull()) {
                 mArduinoCommunicator.resetArduino();
@@ -182,13 +178,21 @@ public class DistanceCalculatorService extends BaseService {
 
     public void stopService()
     {
+        //release camera just in case stopService fails to
+        if(photoTaker!=null) {
+            photoTaker.stop();
+            photoTaker=null;
+        }
         if(!alreadyStopping) {
+            logDebug("Stopping Service");
             alreadyStopping = true;
             stop();
+            releaseWakelocks();
+            stopSelf();
         }
-        releaseWakelocks();
-        logDebug("Stopping Service");
-        stopSelf();
+        else
+            logDebug("Already Stopping Service");
+
     }
 
     private void sendUpdateDistanceIntentToActivity(float distance) {
@@ -289,7 +293,7 @@ public class DistanceCalculatorService extends BaseService {
                             }
 
                             for (int i = 0; i != blobs.size(); i++) {
-                                logDebug("Blob " + String.valueOf(i) + " at " + String.valueOf(blobs.get(i).pt.x) + ", " + String.valueOf(blobs.get(i).pt.y)+ " with diameter " + String.valueOf(blobs.get(i).size) + " and octave " + String.valueOf(blobs.get(i).octave));
+                                logDebug("Blob " + String.valueOf(i) + " at " + String.valueOf(blobs.get(i).pt.x) + ", " + String.valueOf(blobs.get(i).pt.y)+ " with diameter " + String.valueOf(blobs.get(i).size));
                             }
                             logDebug(String.valueOf(blobs.size()) + " blobs detected");
 
@@ -338,9 +342,10 @@ public class DistanceCalculatorService extends BaseService {
                                     size1Tries = 0;
                                     size2PlusTries = 0;
 
+
                                     laserAngle = mLaserUtil.calculateNewAngle(blobs);
                                     //move laser...
-                                    logDebug("Angle = " + String.valueOf(laserAngle));
+                                    //logDebug("Angle = " + String.valueOf(laserAngle));
                                     mArduinoCommunicator.setLaserAngle(laserAngle);
                                     //mArduinoCommunicator.write("getAngle");
                                 } else { //if more than 2 blobs
@@ -359,8 +364,16 @@ public class DistanceCalculatorService extends BaseService {
                         }
                         //take next photo
                         if (photoCount < MAX_PHOTO_COUNT){
-                            if (photoTaker!=null && !photoTaker.takePhoto())
-                                stopService();
+                            if (photoTaker!=null) {
+                                Thread pictureTakerThread = new Thread(new Runnable() {
+                                    public void run() {
+                                        unCaughtExceptionHandler();
+                                        if (photoTaker != null && !photoTaker.takePhoto())
+                                            stopService();
+                                    }
+                                });
+                                pictureTakerThread.start();
+                            }
                         }
                         else{
                             sendUpdateDistanceIntentToActivity(-1);
@@ -398,13 +411,8 @@ public class DistanceCalculatorService extends BaseService {
     public void unCaughtExceptionHandler() {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             public void uncaughtException(final Thread thread, final Throwable ex) {
-                ex.printStackTrace();
+                logStackTrace(new Exception(ex));
                 logError("Uncaught Exception caught: " + ex.getMessage());
-                //release camera just in case stopService fails to
-                if(photoTaker!=null) {
-                    photoTaker.stop();
-                    photoTaker=null;
-                }
                 stopService();
             }
         });

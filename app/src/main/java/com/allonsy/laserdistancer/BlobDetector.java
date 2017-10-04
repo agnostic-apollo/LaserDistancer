@@ -14,7 +14,26 @@ import org.opencv.imgcodecs.Imgcodecs;
 import java.io.File;
 import java.util.Date;
 import java.util.List;
+/*pixelChangeAfterTwoDegreeChange measurements
+3ft->52.4
+4.4ft->8.81
+5ft->38.75
 
+
+y=k/x
+
+k=157.2
+
+
+
+
+a=(y2/y1)^(1/(x2-x1))
+a=0.96
+Po=0.134
+y=0.134*0.96^x
+
+
+*/
 public class BlobDetector {
 
     private DistanceCalculatorService distanceCalculatorService;
@@ -142,8 +161,10 @@ public class BlobDetector {
         blobDetector.detect(secondImageMatrix, secondImageBlobKeyPoints);
 
         if(firstImageBlobKeyPoints.toList().size()!=2 && secondImageBlobKeyPoints.toList().size()!=2) {
-            //decrease min circularity from default(0.90) to 0.60 until center blobs are seen
-            for (int i=0;i<6;i++) {
+            //decrease min circularity from default(0.95) to 0.50 until center blobs are seen
+            float minCircularityChangeStep = 0.05f;
+            int stepCount = (int) (Math.abs(openCVParametersUtil.getMinCircularity()-0.40f) /  minCircularityChangeStep);
+            for (int i=0;i<stepCount;i++) {
                 openCVParametersUtil.setMinCircularity(openCVParametersUtil.getMinCircularity()-0.05f);
                 if(!setOpenCVParameters()){
                     logError("Error setting OpenCV Parameters");
@@ -163,13 +184,13 @@ public class BlobDetector {
                 if(firstImageBlobKeyPoints.toList().size()>=2 && secondImageBlobKeyPoints.toList().size()>=2) {
                     if(checkIfBothLaserBlobsAreDetected(firstImageBlobKeyPoints.toList()) &&  checkIfBothLaserBlobsAreDetected(secondImageBlobKeyPoints.toList()))
                     {
-                        openCVParametersUtil.setMinCircularity(openCVParametersUtil.getMinCircularity()-0.05f);
-                        logDebug("final circularity set at " + String.valueOf(openCVParametersUtil.getMinCircularity()));
                         break;
                     }
                 }
             }
         }
+        openCVParametersUtil.setMinCircularity(openCVParametersUtil.getMinCircularity()-0.05f);
+        logDebug("final circularity set at " + String.valueOf(openCVParametersUtil.getMinCircularity()));
 
         int minAreaChangeStep = 50;
         int stepCount = (int) Math.abs(openCVParametersUtil.getMaxArea()-openCVParametersUtil.getMinArea()) /  Math.abs(minAreaChangeStep);
@@ -203,8 +224,8 @@ public class BlobDetector {
                     String.valueOf(openCVParametersUtil.getMinArea()));
 
             if((firstImageBlobKeyPoints.toList().size()<2 || secondImageBlobKeyPoints.toList().size()<2 && centerBlobsDetectedLast) || (centerBlobsDetectedLast && !centerBlobsDetectedNow)) { //if blobs disappear
-                //decrease min area back 1.5 times minAreaChangeStep
-                openCVParametersUtil.setMinArea(openCVParametersUtil.getMinArea()-(minAreaChangeStep*1.5f));
+                //decrease min area back 1.2 times minAreaChangeStep
+                openCVParametersUtil.setMinArea(openCVParametersUtil.getMinArea()-(minAreaChangeStep*1.2f));
                 if(!setOpenCVParameters()){
                     logError("Error setting OpenCV Parameters");
                     return false;
@@ -214,6 +235,8 @@ public class BlobDetector {
 
                 secondImageBlobKeyPoints = new MatOfKeyPoint();
                 blobDetector.detect(secondImageMatrix, secondImageBlobKeyPoints);
+
+                updateBlobImage(secondImageMatrix, secondImageBlobKeyPoints);
 
                 logDebug("final min area set at " + String.valueOf(openCVParametersUtil.getMinArea()));
                 break;
@@ -266,6 +289,8 @@ public class BlobDetector {
                 secondImageBlobKeyPoints = new MatOfKeyPoint();
                 blobDetector.detect(secondImageMatrix, secondImageBlobKeyPoints);
 
+                updateBlobImage(secondImageMatrix, secondImageBlobKeyPoints);
+
                 logDebug("final max area set at " + String.valueOf(openCVParametersUtil.getMaxArea()));
                 break;
             }
@@ -273,6 +298,12 @@ public class BlobDetector {
         }
 
 
+        for (int i = 0; i != firstImageBlobKeyPoints.toList().size(); i++) {
+            logDebug("First Image Blob " + String.valueOf(i) + " at " + String.valueOf(firstImageBlobKeyPoints.toList().get(i).pt.x) + ", " + String.valueOf(firstImageBlobKeyPoints.toList().get(i).pt.y)+ " with diameter " + String.valueOf(firstImageBlobKeyPoints.toList().get(i).size));
+        }
+        for (int i = 0; i != secondImageBlobKeyPoints.toList().size(); i++) {
+            logDebug("Second Image Blob " + String.valueOf(i) + " at " + String.valueOf(secondImageBlobKeyPoints.toList().get(i).pt.x) + ", " + String.valueOf(secondImageBlobKeyPoints.toList().get(i).pt.y)+ " with diameter " + String.valueOf(secondImageBlobKeyPoints.toList().get(i).size));
+        }
 
         if(firstImageBlobKeyPoints.toList().size()==2 && secondImageBlobKeyPoints.toList().size()==2 &&
                 checkIfBothLaserBlobsAreDetected(firstImageBlobKeyPoints.toList()) &&  checkIfBothLaserBlobsAreDetected(secondImageBlobKeyPoints.toList())) {
@@ -452,24 +483,28 @@ public class BlobDetector {
         if(firstImageKeyPointsList!=null && firstImageKeyPointsList.size()==2 &&
                 secondImageKeyPointsList!=null && secondImageKeyPointsList.size()==2) {
             //find right laser xcoord in first image
-            if (firstImageKeyPointsList.get(0).pt.x < firstImageKeyPointsList.get(1).pt.x) {
+            if (firstImageKeyPointsList.get(0).pt.x > firstImageKeyPointsList.get(1).pt.x) {
                 rightLaserFirstImageXCoord = firstImageKeyPointsList.get(0).pt.x;
             } else {
                 rightLaserFirstImageXCoord = firstImageKeyPointsList.get(1).pt.x;
             }
 
             //find right laser xcoord in second image
-            if (secondImageKeyPointsList.get(0).pt.x < secondImageKeyPointsList.get(1).pt.x) {
+            if (secondImageKeyPointsList.get(0).pt.x > secondImageKeyPointsList.get(1).pt.x) {
                 rightLaserSecondImageXCoord = secondImageKeyPointsList.get(0).pt.x;
             } else {
                 rightLaserSecondImageXCoord = secondImageKeyPointsList.get(1).pt.x;
             }
+
+            logDebug("rightLaserFirstImageXCoord = " + String.valueOf(rightLaserFirstImageXCoord) + ", rightLaserSecondImageXCoord = " + String.valueOf(rightLaserSecondImageXCoord));
+
             pixelChangeAfterTwoDegreeChange = Math.abs(rightLaserFirstImageXCoord-rightLaserSecondImageXCoord);
-            estimatedDistance = estimatedDistanceLinearGraphGradient * pixelChangeAfterTwoDegreeChange;
+            estimatedDistance = 157.2f/pixelChangeAfterTwoDegreeChange;
 
 
             logDebug("pixelChangeAfterTwoDegreeChange =  " + String.valueOf(pixelChangeAfterTwoDegreeChange));
-            estimatedDistance = 0; //since not ready yet
+            logDebug("estimatedDistance =  " + String.valueOf(estimatedDistance));
+            //estimatedDistance = 0; //since not ready yet
         }
         else
         {

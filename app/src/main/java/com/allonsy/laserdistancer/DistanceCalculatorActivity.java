@@ -214,7 +214,8 @@ public class DistanceCalculatorActivity extends BaseActivity {
                     BitmapFactory.Options bmOptions = new BitmapFactory.Options();
                     Bitmap bitmap = BitmapFactory.decodeFile(image.getAbsolutePath(), bmOptions);
                     //Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-                    mCameraImage.setImageBitmap(Bitmap.createScaledBitmap(bitmap, imageViewWidth, imageViewHeight, true));
+                    if(bitmap!=null)
+                         mCameraImage.setImageBitmap(Bitmap.createScaledBitmap(bitmap, imageViewWidth, imageViewHeight, true));
                 }
             }
         }

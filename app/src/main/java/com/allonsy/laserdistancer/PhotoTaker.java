@@ -24,10 +24,11 @@ public class PhotoTaker {
     private String cameraImageFolderPath;
     private int errorCount = 0;
     private Handler distanceCalculatorServiceHandler;
-    private Camera camera;
+    private volatile Camera camera;
+    private SurfaceTexture surfaceTexture;
 
 
-    private static boolean enableAutofocus = true;
+    private static boolean enableAutofocus = false;
 
     public PhotoTaker(DistanceCalculatorService distanceCalculatorService)
     {
@@ -71,7 +72,8 @@ public class PhotoTaker {
             return false;
         }
 
-        SurfaceTexture surfaceTexture = new SurfaceTexture(0);
+        surfaceTexture = new SurfaceTexture(0);
+
         try {
             //holder = view.getHolder();
             camera.setPreviewTexture(surfaceTexture);
@@ -148,36 +150,39 @@ public class PhotoTaker {
 
     public boolean takePhoto()
     {
-        if(camera==null)
-        {
-           distanceCalculatorService.logError("camera null, cant takePhoto");
-          return false;
-        }
 
         if (!alreadyTakingPhoto) {
             try {
-            alreadyTakingPhoto = true;
-            try {Thread.sleep(1000);} catch (InterruptedException e) {Logger.logStackTrace(e);}
-            camera.startPreview();
-            try {Thread.sleep(700);} catch (InterruptedException e) {Logger.logStackTrace(e);}
+                if(!start())
+                    return false;
 
-            setMuteAll(true);
-            if (focusModeAutoAvailable && enableAutofocus){
-                camera.autoFocus(new Camera.AutoFocusCallback() {
-                    @Override
-                    public void onAutoFocus(boolean success, Camera camera) {
-                        //Logger.logDebug("autofocus");
-                        if(success) camera.takePicture(null, null, pic);
-                    }
-                });
-            }else{
-                camera.takePicture(null, null, pic);
-            }
+                if(camera==null)
+                {
+                    distanceCalculatorService.logError("camera null, cant takePhoto");
+                    return false;
+                }
+                alreadyTakingPhoto = true;
+                //try {Thread.sleep(200);} catch (InterruptedException e) {Logger.logStackTrace(e);}
+                camera.startPreview();
+                try {Thread.sleep(500);} catch (InterruptedException e) {Logger.logStackTrace(e);}
 
-            alreadyTakingPhoto = false;
-            errorCount=0;
+                setMuteAll(true);
+                if (focusModeAutoAvailable && enableAutofocus){
+                    camera.autoFocus(new Camera.AutoFocusCallback() {
+                        @Override
+                        public void onAutoFocus(boolean success, Camera camera) {
+                            //Logger.logDebug("autofocus");
+                            if(success) camera.takePicture(null, null, pic);
+                        }
+                    });
+                }else{
+                    camera.takePicture(null, null, pic);
+                }
 
-            return true;
+                alreadyTakingPhoto = false;
+                errorCount=0;
+
+                return true;
             }
             catch (Exception e)
             {
@@ -186,7 +191,7 @@ public class PhotoTaker {
                {
                    //logDebug("exception startPreview");
                    stop();
-                   try {Thread.sleep(400);} catch (InterruptedException ex) {Logger.logStackTrace(ex);}
+                   try {Thread.sleep(1000);} catch (InterruptedException ex) {Logger.logStackTrace(ex);}
                    errorCount++;
                    if(!start())
                        return false;
@@ -219,12 +224,14 @@ public class PhotoTaker {
                 bundle.putString(DistanceCalculatorService.SENDER,DistanceCalculatorService.SENDER_PHOTO_TAKER);
                 msg.setData(bundle);
                 distanceCalculatorServiceHandler.sendMessage(msg);
-                //  camera.stopPreview();
-        }
+                stop();
+             }
         }
     };
 
     private void createCameraImageFile(byte[] data) {
+        try{
+
         int minFreeSpace = 200;//dont record if space in external storage is less than 200mb
 
         //Set output file
@@ -241,7 +248,7 @@ public class PhotoTaker {
 
         String cameraImageFilePath = cameraImageFolderPath + File.separator + ("IMG_CAMERA_" + new Date(System.currentTimeMillis())).replaceAll(" ", "_").replaceAll(":", "_") + ".jpeg";
 
-        try{
+
             FileOutputStream outStream  = new FileOutputStream(cameraImageFilePath);
             outStream.write(data);
             outStream.close();
@@ -260,9 +267,12 @@ public class PhotoTaker {
 
         if (camera != null){
             camera.stopPreview();
+            camera.setPreviewCallback(null);
             camera.release();        // release the camera for other applications
             camera = null;
         }
+        if(surfaceTexture!=null)
+            surfaceTexture.release();
     }
 
 
